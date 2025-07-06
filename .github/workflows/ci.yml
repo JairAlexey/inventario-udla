@@ -19,3 +19,4 @@ jobs:
 
       - name: Build & tests
         run: mvn -B clean verify
+        working-directory: inventario
