@@ -1,0 +1,35 @@
+name: Quality Gate
+
+on:
+  workflow_call:
+  push:
+    branches: [ '**' ]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build & tests
+        working-directory: inventario
+        run: mvn -B clean verify
+
+      - name: Static analysis
+        working-directory: inventario
+        run: |
+          mvn checkstyle:checkstyle
+          mvn pmd:check
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: inventario/target/site
