@@ -23,7 +23,7 @@ jobs:
 
       - name: Static analysis
         run: |
-          mvn -B checkstyle:checkstyle pmd:check
+          mvn -B checkstyle:checkstyle pmd:check spotbugs:spotbugs
         working-directory: inventario
 
       - name: Upload quality reports
