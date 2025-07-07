@@ -2,31 +2,144 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-<span class="nc" id="L6">public class Inventory {</span>
-<span class="nc" id="L7">    private List&lt;String&gt; products = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L8">    private List&lt;Integer&gt; quantities = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L9">    private List&lt;Double&gt; prices = new ArrayList&lt;&gt;();</span>
+/**
+ * Inventory is an in-memory container of {@link Product} items.
+ *
+ * &lt;p&gt;All mutating operations locate a {@code Product} by its {@code name}
+ * and delegate the state change to the entity, keeping this class focused on
+ * orchestration.&lt;/p&gt;
+ *
+ * &lt;h2&gt;Thread-safety&lt;/h2&gt;
+ * This implementation is &lt;em&gt;not&lt;/em&gt; thread-safe. Wrap it with external
+ * synchronisation if accessed concurrently.
+ *
+ * @author Your-Name
+ * @since 1.0
+ */
+<span class="fc" id="L21">public final class Inventory {</span>
 
-    public void addProduct(String p, int q, double price) {
-<span class="nc" id="L12">        products.add(p);</span>
-<span class="nc" id="L13">        quantities.add(q);</span>
-<span class="nc" id="L14">        prices.add(price);</span>
-<span class="nc" id="L15">        System.out.println(&quot;Product added.&quot;);</span>
-<span class="nc" id="L16">    }</span>
+    // ――――――――――――――――――――――――――――――――――――― Constantes demo ――――――――――――――――――――――――――――――――――――
+    /** Demo stock for the Laptop product (used only in {@code main}). */
+    private static final int DEMO_LAPTOP_QTY = 5;
+    /** Demo price for the Laptop product. */
+    private static final double DEMO_LAPTOP_PRICE = 1_000.0;
+    /** Demo stock for the Mouse product. */
+    private static final int DEMO_MOUSE_QTY = 10;
+    /** Demo price for the Mouse product. */
+    private static final double DEMO_MOUSE_PRICE = 25.5;
+    /** Demo new stock used in the second step of {@code main}. */
+    private static final int DEMO_LAPTOP_NEW_QTY = 3;
+    /** Demo new price used in the second step of {@code main}. */
+    private static final double DEMO_MOUSE_NEW_PRICE = 20.0;
 
+    /** Message shown when a product key cannot be found. */
+    private static final String MSG_NOT_FOUND = &quot;Product not found&quot;;
+
+    /** Holds every {@link Product} currently registered. */
+<span class="fc" id="L41">    private final List&lt;Product&gt; products = new ArrayList&lt;&gt;();</span>
+
+    // ――――――――――――――――――――――――――――――― Core API ―――――――――――――――――――――――――――――――
+
+    /**
+     * Adds a brand-new product to the inventory.
+     *
+     * @param name  unique identifier of the product (cannot be blank)
+     * @param qty   initial stock, must be {@code &gt;= 0}
+     * @param price unit price, must be {@code &gt;= 0}
+     */
+    public void addProduct(final String name, final int qty, final double price) {
+<span class="fc" id="L53">        products.add(new Product(name, qty, price));</span>
+<span class="fc" id="L54">        System.out.println(&quot;Product added.&quot;);</span>
+<span class="fc" id="L55">    }</span>
+
+    /**
+     * Updates only the &lt;em&gt;quantity&lt;/em&gt; of a given product.
+     *
+     * @param name product key
+     * @param qty  new quantity, must be {@code &gt;= 0}
+     */
+    public void updateQuantity(final String name, final int qty) {
+<span class="nc" id="L64">        locate(name).ifPresentOrElse(</span>
+<span class="nc" id="L65">            p -&gt; p.setQuantity(qty),</span>
+<span class="nc" id="L66">            () -&gt; System.out.println(MSG_NOT_FOUND)</span>
+        );
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Updates only the &lt;em&gt;unit price&lt;/em&gt; of a given product.
+     *
+     * @param name  product key
+     * @param price new unit price, must be {@code &gt;= 0}
+     */
+    public void updatePrice(final String name, final double price) {
+<span class="nc" id="L77">        locate(name).ifPresentOrElse(</span>
+<span class="nc" id="L78">            p -&gt; p.setPrice(price),</span>
+<span class="nc" id="L79">            () -&gt; System.out.println(MSG_NOT_FOUND)</span>
+        );
+<span class="nc" id="L81">    }</span>
+
+    /**
+     * Calculates the monetary value of &lt;strong&gt;all&lt;/strong&gt; products stored.
+     *
+     * @return aggregated value (quantity × price) for every product
+     */
+    public double getTotalValue() {
+<span class="fc" id="L89">        return products.stream()</span>
+<span class="fc" id="L90">                       .mapToDouble(Product::totalValue)</span>
+<span class="fc" id="L91">                       .sum();</span>
+    }
+
+    /** Prints a human-friendly snapshot of the current inventory state. */
     public void printInventory() {
-<span class="nc bnc" id="L19" title="All 2 branches missed.">        for (int i = 0; i &lt; products.size(); i++) {</span>
-<span class="nc" id="L20">            System.out.println(&quot;Product: &quot; + products.get(i) +</span>
-<span class="nc" id="L21">                &quot;, Quantity: &quot; + quantities.get(i) +</span>
-<span class="nc" id="L22">                &quot;, Price: $&quot; + prices.get(i));</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (products.isEmpty()) {</span>
+<span class="nc" id="L97">            System.out.println(&quot;Inventory is empty.&quot;);</span>
+<span class="nc" id="L98">            return;</span>
         }
-<span class="nc" id="L24">    }</span>
+<span class="fc" id="L100">        products.forEach(p -&gt;</span>
+<span class="fc" id="L101">            System.out.printf(&quot;%s | Qty: %d | Price: $%.2f%n&quot;,</span>
+<span class="fc" id="L102">                              p.getName(), p.getQuantity(), p.getPrice()));</span>
+<span class="fc" id="L103">        System.out.printf(&quot;Total value: $%.2f%n%n&quot;, getTotalValue());</span>
+<span class="fc" id="L104">    }</span>
 
-    public static void main(String[] args) {
-<span class="nc" id="L27">        Inventory inventory = new Inventory();</span>
-<span class="nc" id="L28">        inventory.addProduct(&quot;Laptop&quot;, 5, 1000.0);</span>
-<span class="nc" id="L29">        inventory.printInventory();</span>
-<span class="nc" id="L30">    }</span>
+    // ――――――――――――――――――――――――――――――― Internals ―――――――――――――――――――――――――――――――
+
+    /**
+     * Searches a product by name.
+     *
+     * @param name product key
+     * @return {@link Optional} with the product if found
+     */
+    private Optional&lt;Product&gt; locate(final String name) {
+<span class="nc" id="L115">        return products.stream()</span>
+<span class="nc" id="L116">                       .filter(p -&gt; p.getName().equals(name))</span>
+<span class="nc" id="L117">                       .findFirst();</span>
+    }
+
+    // ――――――――――――――――――――――――――――――― Demo (smoke test) ―――――――――――――――――――――――――――――――
+    @SuppressWarnings(&quot;checkstyle:MagicNumber&quot;)
+    public static void main(final String[] args) {
+<span class="nc" id="L123">        Inventory inv = new Inventory();</span>
+<span class="nc" id="L124">        inv.addProduct(&quot;Laptop&quot;, DEMO_LAPTOP_QTY, DEMO_LAPTOP_PRICE);</span>
+<span class="nc" id="L125">        inv.addProduct(&quot;Mouse&quot;,  DEMO_MOUSE_QTY,  DEMO_MOUSE_PRICE);</span>
+<span class="nc" id="L126">        inv.printInventory();</span>
+
+<span class="nc" id="L128">        inv.updateQuantity(&quot;Laptop&quot;, DEMO_LAPTOP_NEW_QTY);</span>
+<span class="nc" id="L129">        inv.updatePrice   (&quot;Mouse&quot;,  DEMO_MOUSE_NEW_PRICE);</span>
+<span class="nc" id="L130">        inv.printInventory();</span>
+<span class="nc" id="L131">    }</span>
+
+    public int size() {
+<span class="fc" id="L134">        return products.size();</span>
+    }
+
+    /** Suma del valor total de todo el inventario (qty × price). */
+    public double totalInventoryValue() {
+<span class="fc" id="L139">        return products.stream()</span>
+<span class="fc" id="L140">                       .mapToDouble(Product::totalValue)</span>
+<span class="fc" id="L141">                       .sum();</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

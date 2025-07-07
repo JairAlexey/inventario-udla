@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Product.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">inventario</a> &gt; <a href="index.source.html" class="el_package">com.udla</a> &gt; <span class="el_source">Product.java</span></div><h1>Product.java</h1><pre class="source lang-java linenums">package com.udla;
+
+import java.util.Objects;
+
+/**
+ * Entidad que representa un artículo del inventario.
+ * &lt;p&gt;
+ * Solo el nombre es inmutable; la cantidad y el precio pueden
+ * modificarse mediante setters validados.
+ * &lt;/p&gt;
+ */
+public final class Product {
+
+    // ── Constantes ────────────────────────────────────────────
+
+    /** Precio mínimo permitido. */
+    private static final double MIN_PRICE = 0.0;
+
+    /** Cantidad mínima permitida. */
+    private static final int MIN_QUANTITY = 0;
+
+    // ── Atributos ─────────────────────────────────────────────
+
+    /** Nombre único del producto; no cambia durante su vida. */
+    private final String name;
+
+    /** Unidades disponibles en stock. */
+    private int quantity;
+
+    /** Precio unitario en dólares. */
+    private double price;
+
+    // ── Constructores ─────────────────────────────────────────
+
+    /**
+     * Crea un producto.
+     *
+     * @param productName nombre no vacío
+     * @param initialQuantity cantidad &amp;ge; {@value #MIN_QUANTITY}
+     * @param initialPrice precio &amp;ge; {@value #MIN_PRICE}
+     * @throws IllegalArgumentException si algún argumento viola las reglas
+     */
+    public Product(final String productName,
+                   final int    initialQuantity,
+<span class="fc" id="L45">                   final double initialPrice) {</span>
+<span class="fc" id="L46">        validateName(productName);</span>
+<span class="fc" id="L47">        validateQuantity(initialQuantity);</span>
+<span class="fc" id="L48">        validatePrice(initialPrice);</span>
+<span class="fc" id="L49">        this.name     = productName;</span>
+<span class="fc" id="L50">        this.quantity = initialQuantity;</span>
+<span class="fc" id="L51">        this.price    = initialPrice;</span>
+<span class="fc" id="L52">    }</span>
+
+    // ── Getters ───────────────────────────────────────────────
+
+    /** @return nombre único */
+    public String getName() {
+<span class="fc" id="L58">        return name;</span>
+    }
+
+    /** @return unidades en stock */
+    public int getQuantity() {
+<span class="fc" id="L63">        return quantity;</span>
+    }
+
+    /** @return precio unitario */
+    public double getPrice() {
+<span class="fc" id="L68">        return price;</span>
+    }
+
+    // ── Setters validados ─────────────────────────────────────
+
+    /**
+     * Ajusta la cantidad disponible.
+     *
+     * @param newQuantity cantidad &amp;ge; {@value #MIN_QUANTITY}
+     */
+    public void setQuantity(final int newQuantity) {
+<span class="fc" id="L79">        validateQuantity(newQuantity);</span>
+<span class="fc" id="L80">        this.quantity = newQuantity;</span>
+<span class="fc" id="L81">    }</span>
+
+    /**
+     * Ajusta el precio unitario.
+     *
+     * @param newPrice precio &amp;ge; {@value #MIN_PRICE}
+     */
+    public void setPrice(final double newPrice) {
+<span class="fc" id="L89">        validatePrice(newPrice);</span>
+<span class="fc" id="L90">        this.price = newPrice;</span>
+<span class="fc" id="L91">    }</span>
+
+    // ── Utilitarios ───────────────────────────────────────────
+
+    /** @return valor total (precio × cantidad). */
+    public double totalValue() {
+<span class="fc" id="L97">        return quantity * price;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L102">        return String.format(&quot;%s [qty=%d, $%.2f]&quot;, name, quantity, price);</span>
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L108">            return true;</span>
+        }
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (!(obj instanceof Product)) {</span>
+<span class="nc" id="L111">            return false;</span>
+        }
+<span class="fc" id="L113">        Product other = (Product) obj;          // cast explícito</span>
+<span class="fc" id="L114">        return Objects.equals(name, other.name);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L119">        return Objects.hash(name);</span>
+    }
+
+    // ── Validaciones internas ────────────────────────────────
+
+    private static void validateName(final String n) {
+<span class="pc bpc" id="L125" title="1 of 4 branches missed.">        if (n == null || n.isBlank()) {</span>
+<span class="fc" id="L126">            throw new IllegalArgumentException(&quot;El nombre no puede ser vacío&quot;);</span>
+        }
+<span class="fc" id="L128">    }</span>
+
+    private static void validateQuantity(final int q) {
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (q &lt; MIN_QUANTITY) {</span>
+<span class="fc" id="L132">            throw new IllegalArgumentException(&quot;La cantidad debe ser ≥ 0&quot;);</span>
+        }
+<span class="fc" id="L134">    }</span>
+
+    private static void validatePrice(final double p) {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (p &lt; MIN_PRICE) {</span>
+<span class="fc" id="L138">            throw new IllegalArgumentException(&quot;El precio debe ser ≥ 0&quot;);</span>
+        }
+<span class="fc" id="L140">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
