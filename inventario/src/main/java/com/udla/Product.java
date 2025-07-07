@@ -4,53 +4,95 @@ import java.util.Objects;
 
 /**
  * Entidad que representa un artículo del inventario.
+ * <p>
  * Solo el nombre es inmutable; la cantidad y el precio pueden
  * modificarse mediante setters validados.
+ * </p>
  */
-public class Product {
+public final class Product {
 
+    // ── Constantes ────────────────────────────────────────────
+
+    /** Precio mínimo permitido. */
+    private static final double MIN_PRICE = 0.0;
+
+    /** Cantidad mínima permitida. */
+    private static final int MIN_QUANTITY = 0;
+
+    // ── Atributos ─────────────────────────────────────────────
+
+    /** Nombre único del producto; no cambia durante su vida. */
     private final String name;
+
+    /** Unidades disponibles en stock. */
     private int quantity;
+
+    /** Precio unitario en dólares. */
     private double price;
 
-    // ── Constructores ───────────────────────────────────────────────
+    // ── Constructores ─────────────────────────────────────────
 
-    public Product(String name, int quantity, double price) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("El nombre no puede ser vacío");
-        }
-        if (quantity < 0) {
-            throw new IllegalArgumentException("La cantidad debe ser ≥ 0");
-        }
-        if (price < 0) {
-            throw new IllegalArgumentException("El precio debe ser ≥ 0");
-        }
-        this.name = name;
-        this.quantity = quantity;
-        this.price = price;
+    /**
+     * Crea un producto.
+     *
+     * @param productName nombre no vacío
+     * @param initialQuantity cantidad &ge; {@value #MIN_QUANTITY}
+     * @param initialPrice precio &ge; {@value #MIN_PRICE}
+     * @throws IllegalArgumentException si algún argumento viola las reglas
+     */
+    public Product(final String productName,
+                   final int    initialQuantity,
+                   final double initialPrice) {
+        validateName(productName);
+        validateQuantity(initialQuantity);
+        validatePrice(initialPrice);
+        this.name     = productName;
+        this.quantity = initialQuantity;
+        this.price    = initialPrice;
     }
 
-    // ── Getters ────────────────────────────────────────────────────
+    // ── Getters ───────────────────────────────────────────────
 
-    public String getName()     { return name; }
-    public int    getQuantity() { return quantity; }
-    public double getPrice()    { return price; }
-
-    // ── Setters validados ──────────────────────────────────────────
-
-    public void setQuantity(int quantity) {
-        if (quantity < 0) throw new IllegalArgumentException("quantity ≥ 0");
-        this.quantity = quantity;
+    /** @return nombre único */
+    public String getName() {
+        return name;
     }
 
-    public void setPrice(double price) {
-        if (price < 0) throw new IllegalArgumentException("price ≥ 0");
-        this.price = price;
+    /** @return unidades en stock */
+    public int getQuantity() {
+        return quantity;
     }
 
-    // ── Utilitarios ────────────────────────────────────────────────
+    /** @return precio unitario */
+    public double getPrice() {
+        return price;
+    }
 
-    /** Valor total (precio × cantidad). */
+    // ── Setters validados ─────────────────────────────────────
+
+    /**
+     * Ajusta la cantidad disponible.
+     *
+     * @param newQuantity cantidad &ge; {@value #MIN_QUANTITY}
+     */
+    public void setQuantity(final int newQuantity) {
+        validateQuantity(newQuantity);
+        this.quantity = newQuantity;
+    }
+
+    /**
+     * Ajusta el precio unitario.
+     *
+     * @param newPrice precio &ge; {@value #MIN_PRICE}
+     */
+    public void setPrice(final double newPrice) {
+        validatePrice(newPrice);
+        this.price = newPrice;
+    }
+
+    // ── Utilitarios ───────────────────────────────────────────
+
+    /** @return valor total (precio × cantidad). */
     public double totalValue() {
         return quantity * price;
     }
@@ -61,15 +103,39 @@ public class Product {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Product)) return false;
-        Product p = (Product) o;      // cast clásico
-        return Objects.equals(name, p.name);
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof Product)) {
+            return false;
+        }
+        Product other = (Product) obj;          // cast explícito
+        return Objects.equals(name, other.name);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    // ── Validaciones internas ────────────────────────────────
+
+    private static void validateName(final String n) {
+        if (n == null || n.isBlank()) {
+            throw new IllegalArgumentException("El nombre no puede ser vacío");
+        }
+    }
+
+    private static void validateQuantity(final int q) {
+        if (q < MIN_QUANTITY) {
+            throw new IllegalArgumentException("La cantidad debe ser ≥ 0");
+        }
+    }
+
+    private static void validatePrice(final double p) {
+        if (p < MIN_PRICE) {
+            throw new IllegalArgumentException("El precio debe ser ≥ 0");
+        }
     }
 }
