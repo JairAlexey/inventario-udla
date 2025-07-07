@@ -1,8 +1,9 @@
 name: Quality Gate
 
 on:
-  workflow_call:          # permite reutilizar desde otros workflows
-  push:   { branches: [ '**' ] }
+  workflow_call:
+  push:
+    branches: [ '**' ]
   pull_request:
 
 jobs:
@@ -12,12 +13,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v3
-        with: { distribution: temurin, java-version: '17', cache: 'maven' }
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: 'maven'
 
       - name: Build & tests
+        working-directory: inventario
         run: mvn -B clean verify
 
       - name: Static analysis
+        working-directory: inventario
         run: |
           mvn checkstyle:checkstyle
           mvn pmd:check
@@ -26,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quality-reports
-          path: target/site
+          path: inventario/target/site
