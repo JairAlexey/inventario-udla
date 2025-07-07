@@ -1,0 +1,29 @@
+name: Quality Gate
+
+on:
+  workflow_call:          # permite reutilizar desde otros workflows
+  push:   { branches: [ '**' ] }
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with: { distribution: temurin, java-version: '17', cache: 'maven' }
+
+      - name: Build & tests
+        run: mvn -B clean verify
+
+      - name: Static analysis
+        run: |
+          mvn checkstyle:checkstyle
+          mvn pmd:check
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: target/site
