@@ -1,0 +1,35 @@
+name: Comentario de métricas en PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  comentar-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comentar Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `
+### 📊 Revisión de métricas
+
+- **Cobertura global**: 82 % ✅ (mínimo: 80 %)
+- **Paquetes afectados**: \`com.app.service\` (74 % ❌)
+- **Checkstyle**: 3 nuevas violaciones (\`naming\`)
+- **PMD**: 0 P1/P2 ✅
+
+### 🛠️ Acciones solicitadas
+1. Añadir tests en \`ProductService\` (↓ cobertura)
+2. Renombrar variable \`p\` → \`product\`
+`;
+
+            github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
