@@ -78,23 +78,17 @@
         <!-- Sin configuración extra: autodetecta JUnit 5 -->
       </plugin>
 
-      <!-- SpotBugs - análisis de bytecode -->
-        <plugin>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-maven-plugin</artifactId>
-            <version>4.8.3.0</version>
-            <configuration>
-                <effort>Max</effort>
-                <threshold>Low</threshold>
-                <failOnError>true</failOnError>
-            </configuration>
-            <executions>
-                <execution>
-                    <phase>verify</phase>
-                    <goals><goal>spotbugs</goal></goals>
-                </execution>
-            </executions>
-        </plugin>
+<!-- SpotBugs - análisis de bytecode -->
+<plugin>
+    <groupId>com.github.spotbugs</groupId>
+    <artifactId>spotbugs-maven-plugin</artifactId>
+    <version>4.8.3.0</version>
+    <configuration>
+        <effort>Max</effort>
+        <threshold>Low</threshold>
+        <failOnError>true</failOnError>
+    </configuration>
+</plugin>
 
       <!-- Checkstyle con reglas Google y tope de 10 violaciones críticas -->
       <plugin>
