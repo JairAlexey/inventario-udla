@@ -129,4 +129,16 @@ public final class Inventory {
         inv.updatePrice   ("Mouse",  DEMO_MOUSE_NEW_PRICE);
         inv.printInventory();
     }
+
+    public int size() {
+        return products.size();
+    }
+
+    /** Suma del valor total de todo el inventario (qty × price). */
+    public double totalInventoryValue() {
+        return products.stream()
+                       .mapToDouble(Product::totalValue)
+                       .sum();
+    }
+
 }
