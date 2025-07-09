@@ -15,7 +15,6 @@ import java.util.Optional;
  * This implementation is <em>not</em> thread-safe. Wrap it with external
  * synchronisation if accessed concurrently.
  *
- * @author Your-Name
  * @since 1.0
  */
 public final class Inventory {
